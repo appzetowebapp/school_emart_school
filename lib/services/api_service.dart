@@ -46,7 +46,7 @@ class ApiService {
         return false;
       }
 
-      final url = _getApiUrl('/v1/fcm-tokens/mobile/save');
+      final url = _getApiUrl('/v1/notifications/tokens');
 
       final accessToken = PrefsUtil.getAccessToken();
       if (accessToken == null || accessToken.isEmpty) {
@@ -58,11 +58,9 @@ class ApiService {
 
       final requestBody = <String, dynamic>{
         'token': token,
-        'fcmToken': token,
-        'platform': platformValue,
-        'appRole': role,
-        'appType': role,
-        'role': role,
+        
+        'platform':'android',
+        
         if (phone != null && phone.isNotEmpty) 'phone': phone,
       };
 

@@ -28,8 +28,7 @@ class NotificationService {
 
   bool _isInitialized = false;
   bool _listenersRegistered = false;
-  static const _platform =
-      MethodChannel('com.indian.bite.restaurant/geolocation');
+  static const _platform = MethodChannel('com.schoolemart.school/geolocation');
 
   // Track shown notifications to prevent duplicates
   final Set<String> _shownNotificationIds = <String>{};
@@ -48,15 +47,22 @@ class NotificationService {
 
   /// Strict evaluation logic to check for explicit new order criteria only
   static bool isNewOrderNotification(Map<String, dynamic> data) {
-    final type = (data['type'] ?? data['notification_type'] ?? data['click_action'] ?? data['event'] ?? '')
-        .toString()
-        .toLowerCase()
-        .trim();
+    final type =
+        (data['type'] ??
+                data['notification_type'] ??
+                data['click_action'] ??
+                data['event'] ??
+                '')
+            .toString()
+            .toLowerCase()
+            .trim();
 
     final title = (data['title'] ?? '').toString().toLowerCase().trim();
     final body = (data['body'] ?? '').toString().toLowerCase().trim();
 
-    debugPrint('🔔 Notification Check => type="$type", title="$title", body="$body"');
+    debugPrint(
+      '🔔 Notification Check => type="$type", title="$title", body="$body"',
+    );
 
     // Reject immediate non-order patterns
     if (title.contains('rider arrived') || body.contains('rider arrived')) {
@@ -64,7 +70,9 @@ class NotificationService {
     }
 
     // Text Keyword Fallback Match
-    if (title.contains('new order') || title.contains('order received') || title.contains('naya order')) {
+    if (title.contains('new order') ||
+        title.contains('order received') ||
+        title.contains('naya order')) {
       return true;
     }
 
@@ -93,10 +101,10 @@ class NotificationService {
 
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -108,11 +116,11 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-   
     if (Platform.isAndroid && !isBackground) {
       final androidPlugin = _notificationsPlugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       try {
         await androidPlugin?.requestNotificationsPermission();
       } catch (e) {
@@ -124,7 +132,9 @@ class NotificationService {
     await _initializeFirebaseMessaging();
 
     _isInitialized = true;
-    debugPrint('✅ Notification service initialized (isBackground: $isBackground)');
+    debugPrint(
+      '✅ Notification service initialized (isBackground: $isBackground)',
+    );
   }
 
   /// Initialize Firebase Cloud Messaging Configuration
@@ -133,13 +143,13 @@ class NotificationService {
       _firebaseMessaging = FirebaseMessaging.instance;
 
       if (Platform.isIOS) {
-        NotificationSettings settings =
-            await _firebaseMessaging!.requestPermission(
-          alert: true,
-          badge: true,
-          sound: true,
-          provisional: false,
-        );
+        NotificationSettings settings = await _firebaseMessaging!
+            .requestPermission(
+              alert: true,
+              badge: true,
+              sound: true,
+              provisional: false,
+            );
         if (settings.authorizationStatus == AuthorizationStatus.authorized) {
           debugPrint('✅ Firebase notification permission granted (iOS)');
         }
@@ -170,7 +180,9 @@ class NotificationService {
           _handleForegroundMessage(message);
         });
 
-        FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+        FirebaseMessaging.instance.getInitialMessage().then((
+          RemoteMessage? message,
+        ) {
           if (message != null) {
             // Merge notification fields into data so the order-modal trigger has full context.
             final merged = Map<String, dynamic>.from(message.data);
@@ -191,7 +203,6 @@ class NotificationService {
 
         _listenersRegistered = true;
       }
-
     } catch (e) {
       debugPrint('❌ Error initializing Firebase Messaging: $e');
     }
@@ -218,16 +229,20 @@ class NotificationService {
     final String uniqueId = notificationId.isNotEmpty
         ? notificationId
         : '${data['type'] ?? ''}_${data['orderId'] ?? data['order_id'] ?? ''}_'
-          '${notification?.title ?? data['title'] ?? ''}_'
-          '${notification?.body ?? data['body'] ?? ''}';
+              '${notification?.title ?? data['title'] ?? ''}_'
+              '${notification?.body ?? data['body'] ?? ''}';
 
     _cleanOldNotificationIds();
 
     if (_shownNotificationIds.contains(uniqueId)) return;
 
     if (isNewOrderNotification(data)) {
-      final orderTitle = notification?.title ?? data['title']?.toString() ?? 'New Order';
-      final orderBody = notification?.body ?? data['body']?.toString() ?? 'You have a new delivery order';
+      final orderTitle =
+          notification?.title ?? data['title']?.toString() ?? 'New Order';
+      final orderBody =
+          notification?.body ??
+          data['body']?.toString() ??
+          'You have a new delivery order';
 
       await showOrderNotification(
         title: orderTitle,
@@ -240,7 +255,10 @@ class NotificationService {
       try {
         final service = FlutterBackgroundService();
         if (await service.isRunning()) {
-          service.invoke('startRingtone', {'title': orderTitle, 'body': orderBody});
+          service.invoke('startRingtone', {
+            'title': orderTitle,
+            'body': orderBody,
+          });
         } else {
           // Service is not running (overlay/tracking was not enabled by the user).
           // Start it on-demand so the ringtone can play — same pattern used by the
@@ -248,7 +266,10 @@ class NotificationService {
           // whether the app was in the foreground or background.
           await service.startService();
           await Future.delayed(const Duration(milliseconds: 1500));
-          service.invoke('startRingtone', {'title': orderTitle, 'body': orderBody});
+          service.invoke('startRingtone', {
+            'title': orderTitle,
+            'body': orderBody,
+          });
         }
       } catch (e) {
         debugPrint('⚠️ Could not start background ringtone: $e');
@@ -318,45 +339,59 @@ class NotificationService {
 
   Future<void> _createNotificationChannel() async {
     try {
-      const AndroidNotificationChannel standardChannel = AndroidNotificationChannel(
-        AppConfig.notificationChannelId,
-        AppConfig.notificationChannelName,
-        description: AppConfig.notificationChannelDescription,
-        importance: Importance.low, 
-        playSound: false,
-        enableVibration: false,
-        showBadge: true,
-      );
+      const AndroidNotificationChannel standardChannel =
+          AndroidNotificationChannel(
+            AppConfig.notificationChannelId,
+            AppConfig.notificationChannelName,
+            description: AppConfig.notificationChannelDescription,
+            importance: Importance.low,
+            playSound: false,
+            enableVibration: false,
+            showBadge: true,
+          );
 
-      const AndroidNotificationChannel silentChannel = AndroidNotificationChannel(
-        AppConfig.silentChannelId,
-        AppConfig.silentChannelName,
-        description: AppConfig.silentChannelDescription,
-        importance: Importance.low,
-        playSound: false,
-        enableVibration: false,
-        showBadge: true,
-      );
+      const AndroidNotificationChannel silentChannel =
+          AndroidNotificationChannel(
+            AppConfig.silentChannelId,
+            AppConfig.silentChannelName,
+            description: AppConfig.silentChannelDescription,
+            importance: Importance.low,
+            playSound: false,
+            enableVibration: false,
+            showBadge: true,
+          );
 
-      const AndroidNotificationChannel criticalChannel = AndroidNotificationChannel(
-        AppConfig.criticalChannelId,
-        AppConfig.criticalChannelName,
-        description: AppConfig.criticalChannelDescription,
-        importance: Importance.max,
-        playSound: false,
-        enableVibration: true,
-        showBadge: true,
-        enableLights: true,
-        ledColor: Colors.red,
-      );
+      const AndroidNotificationChannel criticalChannel =
+          AndroidNotificationChannel(
+            AppConfig.criticalChannelId,
+            AppConfig.criticalChannelName,
+            description: AppConfig.criticalChannelDescription,
+            importance: Importance.max,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound(
+              AppConfig.notificationSoundName,
+            ),
+            enableVibration: true,
+            showBadge: true,
+            enableLights: true,
+            ledColor: Colors.red,
+          );
 
-      final androidImplementation = _notificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
 
       if (androidImplementation != null) {
-        await androidImplementation.deleteNotificationChannel(AppConfig.notificationChannelId);
-        await androidImplementation.deleteNotificationChannel(AppConfig.silentChannelId);
-        await androidImplementation.deleteNotificationChannel(AppConfig.criticalChannelId);
+        await androidImplementation.deleteNotificationChannel(
+          AppConfig.notificationChannelId,
+        );
+        await androidImplementation.deleteNotificationChannel(
+          AppConfig.silentChannelId,
+        );
+        await androidImplementation.deleteNotificationChannel(
+          AppConfig.criticalChannelId,
+        );
 
         await androidImplementation.createNotificationChannel(standardChannel);
         await androidImplementation.createNotificationChannel(silentChannel);
@@ -401,30 +436,31 @@ class NotificationService {
     }
   }
 
-
   Future<void> showSimpleNotification({
     required String title,
     required String body,
     String? payload,
     String? notificationId,
   }) async {
-    final int localNotificationId = notificationId != null && notificationId.isNotEmpty
+    final int localNotificationId =
+        notificationId != null && notificationId.isNotEmpty
         ? notificationId.hashCode.abs() % 2147483647
         : '${title}_$body'.hashCode.abs() % 2147483647;
 
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      AppConfig.silentChannelId,
-      AppConfig.silentChannelName,
-      channelDescription: AppConfig.silentChannelDescription,
-      importance: Importance.low,
-      priority: Priority.low,
-      playSound: false,
-      enableVibration: false,
-      icon: AppConfig.notificationIcon,
-      showWhen: true,
-      styleInformation: const BigTextStyleInformation(''),
-      color: AppConfig.notificationColor,
-    );
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          AppConfig.silentChannelId,
+          AppConfig.silentChannelName,
+          channelDescription: AppConfig.silentChannelDescription,
+          importance: Importance.low,
+          priority: Priority.low,
+          playSound: false,
+          enableVibration: false,
+          icon: AppConfig.notificationIcon,
+          showWhen: true,
+          styleInformation: const BigTextStyleInformation(''),
+          color: AppConfig.notificationColor,
+        );
 
     await _notificationsPlugin.show(
       localNotificationId,
@@ -432,7 +468,11 @@ class NotificationService {
       body,
       NotificationDetails(
         android: androidDetails,
-        iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: false),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: false,
+        ),
       ),
       payload: payload,
     );
@@ -448,7 +488,10 @@ class NotificationService {
     final data = orderData ?? {};
     final localId = NewOrderNotificationUtil.notificationIdFor(data);
 
-    final android = _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final android = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await NewOrderNotificationUtil.ensureCriticalChannel(android);
 
     await _notificationsPlugin.show(
@@ -463,6 +506,7 @@ class NotificationService {
   Future<void> stopOrderAlertSound() async {
     try {
       FlutterBackgroundService().invoke('stopRingtone');
+      await cancelAllNotifications();
     } catch (_) {}
   }
 

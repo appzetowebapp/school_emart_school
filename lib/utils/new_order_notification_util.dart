@@ -54,7 +54,8 @@ class NewOrderNotificationUtil {
         AppConfig.criticalChannelName,
         description: AppConfig.criticalChannelDescription,
         importance: Importance.max,
-        playSound: false,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound(AppConfig.notificationSoundName),
         enableVibration: true,
         showBadge: true,
         enableLights: true,
@@ -65,18 +66,21 @@ class NewOrderNotificationUtil {
   }
 
   static NotificationDetails buildDetails() {
-    return const NotificationDetails(
+    return NotificationDetails(
       android: AndroidNotificationDetails(
         AppConfig.criticalChannelId,
         AppConfig.criticalChannelName,
         channelDescription: AppConfig.criticalChannelDescription,
         importance: Importance.max,
         priority: Priority.max,
-        playSound: false,
+        playSound: true,
+        sound: const RawResourceAndroidNotificationSound(AppConfig.notificationSoundName),
+        additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT
+        audioAttributesUsage: AudioAttributesUsage.alarm,
         enableVibration: true,
         icon: AppConfig.notificationIcon,
         visibility: NotificationVisibility.public,
-        styleInformation: BigTextStyleInformation(''),
+        styleInformation: const BigTextStyleInformation(''),
         colorized: true,
         color: Colors.red,
         showWhen: true,
@@ -85,7 +89,7 @@ class NewOrderNotificationUtil {
         channelShowBadge: true,
         ticker: 'New order received',
       ),
-      iOS: DarwinNotificationDetails(
+      iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,

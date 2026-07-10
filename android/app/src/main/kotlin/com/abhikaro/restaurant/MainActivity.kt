@@ -1,4 +1,4 @@
-package com.indian.bite.restaurant
+package com.schoolemart.school
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,7 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 import android.content.Intent
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "com.indian.bite.restaurant/geolocation"
+    private val CHANNEL = "com.schoolemart.school/geolocation"
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

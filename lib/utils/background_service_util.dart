@@ -29,7 +29,7 @@ void onStart(ServiceInstance service) async {
 
     // Set initial notification content once
     service.setForegroundNotificationInfo(
-      title: "Indian Bite Restaurants Partner Service Active",
+      title: "School E Mart School Service Active",
       content: "Waiting for new orders...",
     );
 
@@ -40,33 +40,9 @@ void onStart(ServiceInstance service) async {
     // a second notification that looks identical to the critical order alert
     // already shown by showOrderNotification() — the duplicate the user sees.
     service.on('startRingtone').listen((event) async {
-      if (!isRinging) {
-        debugPrint('🔔 Background Service: Starting Ringtone');
-        isRinging = true;
-        // Create a fresh player each time so there is no stale ExoPlayer state.
-        // Set the audio context on the new instance BEFORE loading the source so
-        // the notification-stream AudioAttributes are applied during preparation —
-        // this prevents the brief full-volume burst that occurs when attributes
-        // are applied after ExoPlayer has already started audio output.
-        audioPlayer = AudioPlayer();
-        await audioPlayer!.setAudioContext(
-          AudioContext(
-            android: const AudioContextAndroid(
-              contentType: AndroidContentType.sonification,
-              usageType: AndroidUsageType.notification,
-              audioFocus: AndroidAudioFocus.gainTransient,
-            ),
-            iOS: AudioContextIOS(
-              category: AVAudioSessionCategory.ambient,
-            ),
-          ),
-        );
-        await audioPlayer!.setReleaseMode(ReleaseMode.loop);
-        // setSource prepares the player (AudioAttributes already in place),
-        // then resume starts output — volume is correct from the very first frame.
-        await audioPlayer!.setSource(AssetSource('audio/iphone-remix-68028.mp3'));
-        await audioPlayer!.resume();
-      }
+      debugPrint(
+        '🔔 Background Service: Native insistent notification plays the ringtone. Skipping audioplayers playback.',
+      );
     });
 
     // Listen for ringtone stop
@@ -80,7 +56,7 @@ void onStart(ServiceInstance service) async {
 
         // Reset notification info
         service.setForegroundNotificationInfo(
-          title: "Indian Bite Restaurants Partner Service Active",
+          title: "School E Mart School Service Active",
           content: "Waiting for new orders...",
         );
       }
@@ -102,10 +78,13 @@ void onStart(ServiceInstance service) async {
 
       try {
         final position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high);
-        
-        debugPrint('📍 Background Location: ${position.latitude}, ${position.longitude}');
-        
+          desiredAccuracy: LocationAccuracy.high,
+        );
+
+        debugPrint(
+          '📍 Background Location: ${position.latitude}, ${position.longitude}',
+        );
+
         // Broadcast location update
         service.invoke('update', {
           "latitude": position.latitude,
