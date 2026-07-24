@@ -57,7 +57,7 @@ class AppConfig {
 
   // ==================== WEB URL CONFIGURATION ====================
   // ⚠️ CHANGE THIS URL TO YOUR WEB APPLICATION ⚠️
-  static const String webUrl = 'https://smartedukidz.com/school/login';
+  static const String webUrl = 'https://schoolemart.com/school/admin';
 
   /// Role sent with FCM token registration so the backend can target this device.
   static String get appRole {
@@ -109,7 +109,7 @@ class AppConfig {
 
   // ==================== API CONFIGURATION ====================
   // Base URL for API endpoints (update this with your actual API base URL)
-  static const String apiBaseUrl = 'https://smartedukidz.com/api';
+  static const String apiBaseUrl = 'https://schoolemart.com/api';
 
   // ==================== SPLASH SCREEN ====================
   static const int splashDurationSeconds = 2;

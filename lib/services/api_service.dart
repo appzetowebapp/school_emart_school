@@ -59,7 +59,7 @@ class ApiService {
       final requestBody = <String, dynamic>{
         'token': token,
         
-        'platform':'android',
+        'platform':'app',
         
         if (phone != null && phone.isNotEmpty) 'phone': phone,
       };
